@@ -74,7 +74,7 @@ const CompanyForm = () => {
           <div className="md:col-span-2">
             <Button 
               type="submit" 
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className="bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
               disabled={loading}
             >
               {loading ? "Guardando..." : "Guardar"}

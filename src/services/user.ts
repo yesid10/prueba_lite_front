@@ -7,7 +7,7 @@ export interface User {
 
 interface LoginResponse {
   user: User;
-  token: string;
+  access_token: string;
 }
 
 export const login = async (
@@ -21,8 +21,8 @@ export const login = async (
     });
     
     // Guardar el token en localStorage si lo necesitas
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+    if (response.data.access_token) {
+      localStorage.setItem('token', response.data.access_token);
     }
     
     console.log(response);

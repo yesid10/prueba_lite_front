@@ -4,11 +4,11 @@ export function useRates() {
   return useQuery({
     queryKey: ["rates"],
     queryFn: async () => {
-      const res = await fetch("/api/rates")
+      const res = await fetch("https://api.exchangerate.host/latest?base=USD")
       const json = await res.json()
-      if (!json?.success) throw new Error("Failed")
-      // exchangerate.host returns { rates: { USD:1, ... }, base: 'USD' }
-      return json.data
+      if (!json?.rates) throw new Error("Failed")
+      // Adaptar al formato esperado por el resto del código
+      return { rates: json.rates, base: json.base }
     },
     staleTime: 1000 * 60 * 30,
   })

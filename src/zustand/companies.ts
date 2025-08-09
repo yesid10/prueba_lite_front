@@ -61,22 +61,6 @@ export const useCompanies = create<CompaniesState>((set) => ({
         }
     },
 
-    // addCompany: async (company) => {
-    //     try {
-    //         set({ loading: true, error: null });
-    //         const newCompany = await createCompany(company);
-    //         set(state => ({ 
-    //             companies: [...state.companies, newCompany],
-    //             loading: false 
-    //         }));
-    //     } catch (error: any) {
-    //         set({ 
-    //             error: error.message || 'Error al crear la compañía',
-    //             loading: false 
-    //         });
-    //     }
-    // },
-
     updateCompany: async (nit: string, companyData: Partial<Company>) => {
         try {
             set({ loading: true, error: null });

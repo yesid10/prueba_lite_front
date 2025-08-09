@@ -18,11 +18,15 @@ import { getInventories } from "@/services/inventory";
 import type { InventoryItem } from "@/services/inventory";
 import { createInventoryHash } from "@/utils/cripto";
 import { useCompanies } from "@/zustand/companies";
+import axios from "axios";
 
 export function InventoryPanel() {
   const [companyNit, setCompanyNit] = useState<string>("");
   const [email, setEmail] = useState("");
   const [sendMethod, setSendMethod] = useState<"REST" | "SOAP">("REST");
+  const [emailStatus, setEmailStatus] = useState<
+    null | "success" | "error" | "loading"
+  >(null);
   const { companies } = useCompanies();
 
   const {
@@ -107,27 +111,94 @@ export function InventoryPanel() {
   };
 
   const handleSend = async () => {
-    if (!email) {
-      return;
-    }
-    const doc = await generatePdf();
-    const pdfBase64 = btoa(doc.output()); // base64 of raw string
-    const res = await fetch("/api/send-pdf", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        to: email,
-        subject: "Inventario adjunto",
-        pdfBase64,
-        method: sendMethod,
-      }),
-    });
-    const json = await res.json();
-  };
+    if (!email) return;
+    setEmailStatus("loading");
 
+    try {
+      const doc = await generatePdf();
+      const pdfBase64 = btoa(doc.output());
+
+      const response = await axios.post(
+        "/api/resend/emails",
+        {
+          // ✅ Usar el dominio de prueba de Resend
+          from: "Acme <onboarding@resend.dev>", // Este dominio está pre-verificado para pruebas
+          to: email,
+          subject: "Inventario adjunto",
+          html: `<p>Adjunto el inventario en PDF.</p><p>Enviado desde tu aplicación de inventario.</p>`,
+          attachments: [
+            {
+              filename: "inventario.pdf",
+              content: pdfBase64,
+              type: "application/pdf",
+              disposition: "attachment",
+            },
+          ],
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 30000,
+        }
+      );
+
+      if (response.status >= 200 && response.status < 300) {
+        setEmailStatus("success");
+        console.log("Email enviado exitosamente:", response.data);
+      } else {
+        setEmailStatus("error");
+        console.error("Error en respuesta:", response.status, response.data);
+      }
+    } catch (error) {
+      setEmailStatus("error");
+
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          console.error(
+            "Error de respuesta:",
+            error.response.status,
+            error.response.data
+          );
+
+          // Mensaje específico para error de dominio
+          if (
+            error.response.status === 403 &&
+            error.response.data?.error?.includes("domain is not verified")
+          ) {
+            console.error(
+              "❌ El dominio del remitente no está verificado en Resend"
+            );
+            console.log(
+              '💡 Usa "onboarding@resend.dev" para pruebas o verifica tu dominio en https://resend.com/domains'
+            );
+          }
+        } else if (error.request) {
+          console.error("Error de red:", error.request);
+        } else {
+          console.error("Error de configuración:", error.message);
+        }
+      } else {
+        console.error("Error desconocido:", error);
+      }
+    }
+
+    setTimeout(() => setEmailStatus(null), 3000);
+  };
   return (
     <div className="grid gap-6">
       <Card className="p-4 border-gray-200">
+        {emailStatus === "success" && (
+          <div className="text-green-600 mb-2">
+            Correo enviado correctamente.
+          </div>
+        )}
+        {emailStatus === "error" && (
+          <div className="text-red-600 mb-2">Error al enviar el correo.</div>
+        )}
+        {emailStatus === "loading" && (
+          <div className="text-gray-600 mb-2">Enviando correo...</div>
+        )}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div>
             <Label className="mb-2" htmlFor="company">
@@ -175,8 +246,12 @@ export function InventoryPanel() {
                   <SelectItem value="SOAP">{"SOAP (XML)"}</SelectItem>
                 </SelectContent>
               </Select>
-              <Button className="mt-3 bg-emerald-600 hover:bg-emerald-700">
-                {"Enviar Correo"}
+              <Button
+                className="mt-3 bg-emerald-600 hover:bg-emerald-700"
+                onClick={handleSend}
+                disabled={!email || emailStatus === "loading"}
+              >
+                {emailStatus === "loading" ? "Enviando..." : "Enviar Correo"}
               </Button>
             </div>
           </div>
