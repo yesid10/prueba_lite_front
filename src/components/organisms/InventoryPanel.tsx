@@ -121,8 +121,7 @@ export function InventoryPanel() {
       const response = await axios.post(
         "/api/resend/emails",
         {
-          // ✅ Usar el dominio de prueba de Resend
-          from: "Acme <onboarding@resend.dev>", // Este dominio está pre-verificado para pruebas
+          from: "Acme <onboarding@resend.dev>",
           to: email,
           subject: "Inventario adjunto",
           html: `<p>Adjunto el inventario en PDF.</p><p>Enviado desde tu aplicación de inventario.</p>`,
