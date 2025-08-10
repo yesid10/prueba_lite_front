@@ -1,42 +1,49 @@
-const { Resend } = require('resend');
+import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-interface EmailRequest {
-  from: string;
-  to: string;
-  subject: string;
-  html: string;
-  attachments?: {
-    filename: string;
-    content: string;
-    type: string;
-    disposition?: string;
-  }[];
-}
+// ✅ Export como ES module sin tipos de Vercel
+export default async function handler(req: any, res: any) {
+  // Configurar headers CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-module.exports = async (req: any, res: any) => {
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method not allowed' });
+    res.status(405).json({ message: 'Method not allowed' });
+    return;
   }
 
   try {
     if (!process.env.RESEND_API_KEY) {
       console.error('❌ RESEND_API_KEY no configurada');
-      return res.status(500).json({ 
+      res.status(500).json({ 
         error: 'RESEND_API_KEY not configured' 
       });
+      return;
     }
 
-    const { from, to, subject, html, attachments }: EmailRequest = req.body;
+    const { from, to, subject, html, attachments } = req.body;
 
     if (!from || !to || !subject || !html) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         error: 'Missing required fields: from, to, subject, html' 
       });
+      return;
     }
 
-    const emailData: any = {
+    const emailData: {
+      from: any;
+      to: any;
+      subject: any;
+      html: any;
+      attachments?: any[];
+    } = {
       from,
       to,
       subject,
@@ -69,4 +76,4 @@ module.exports = async (req: any, res: any) => {
       success: false 
     });
   }
-};
+}
