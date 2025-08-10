@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { Loader2, Wand2 } from "lucide-react";
+import axios from "axios";
 
 export function AIAssistant() {
   const [prompt, setPrompt] = useState(
@@ -16,48 +17,59 @@ export function AIAssistant() {
     setLoading(true);
     setOutput("");
     try {
-      const apiKey =
-        "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";
-      const sys =
-        "Eres un asistente creativo que propone nombres y características concisas de productos.";
-      const messages = [
-        { role: "system", content: sys },
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      
+      if (!apiKey) {
+        setOutput("Error: API key de Gemini no configurada. Verifica tu archivo .env");
+        return;
+      }
+      
+      const promptText = `Genera 3 nombres pegajosos y 5 características para: ${prompt}. Responde en español.`;
+      
+      const urlGemini = import.meta.env.VITE_GEMINI_URL || `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=`
+      const response = await axios.post(
+        `${urlGemini}${apiKey}`,
         {
-          role: "user",
-          content: `Genera 3 nombres pegajosos y 5 características para: ${prompt}. Responde en español.`,
+          contents: [
+            {
+              parts: [
+                {
+                  text: promptText
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 1024,
+          }
         },
-      ];
-      const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
         {
-          method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
           },
-          body: JSON.stringify({
-            model: "gpt-3.5-turbo-0125",
-            messages,
-            temperature: 0.7,
-          }),
         }
       );
-      if (!response.ok) throw new Error("Error en la API de OpenAI");
-      const data = await response.json();
-      setOutput(data.choices?.[0]?.message?.content || "Sin respuesta");
+      
+      const data = response.data;
+      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sin respuesta";
+      setOutput(generatedText);
     } catch (e) {
-      setOutput("No fue posible ejecutar la consulta a ChatGPT.");
+      console.error("Error con Gemini:", e);
+      setOutput("No fue posible ejecutar la consulta a Gemini. Verifica tu API key.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card className="p-4">
+    <Card className="p-4 border-gray-200">
       <div className="grid gap-3 ">
         <div className="text-sm text-muted-foreground">
           {
-            "Funciona con ChatGPT (OpenAI). No expongas tu API key en producción."
+            "Funciona con Google Gemini. Obtén tu API key gratuita en Google AI Studio."
           }
         </div>
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">

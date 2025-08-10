@@ -1,4 +1,4 @@
-import { AIAssistant } from "@/components/ai-assistant";
+import { AIAssistant } from "@/components/organisms/AIAssistant";
 import Layout from "@/layout/Layout";
 import CompanyPage from "@/pages/CompanyPage";
 import HomePage from "@/pages/HomePage";

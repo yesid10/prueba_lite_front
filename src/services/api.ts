@@ -1,6 +1,7 @@
 import axios from "axios";
 
-export const URL = "http://localhost:8000";
+// ✅ Variable de entorno correcta para Vite
+export const URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // Crear instancia de axios con configuración base
 export const api = axios.create({
@@ -11,39 +12,37 @@ export const api = axios.create({
 });
 
 // Interceptor para agregar el token a todas las peticiones
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
-
-// Interceptor para manejar respuestas y errores
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      // Token expirado o inválido
-      localStorage.removeItem('token');
-      // Podrías redirigir al login aquí
-      window.location.href = '/login';
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    return config;
+  }, 
+  (error) => {
     return Promise.reject(error);
   }
 );
 
-// Interceptores para manejo de errores
+// Interceptor combinado para manejar respuestas y errores
 api.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  async (error) => {
+    // Manejo de errores de autenticación
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+    
+    // Manejo de errores de red y servidor
     if (!error.response) {
       console.error('Error de red:', error.message);
     } else {
       console.error('Error del servidor:', error.response.status, error.response.data);
     }
-    throw error;
+    
+    return Promise.reject(error);
   }
 );

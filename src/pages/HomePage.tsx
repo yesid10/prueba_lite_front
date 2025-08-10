@@ -35,7 +35,7 @@ const HomePage = () => {
               </Link>
             </Button>
             <Button asChild variant="ghost">
-              <Link to="/ai-assistant">
+              <Link to="/ia">
                 <Bot className="mr-2 h-4 w-4 text-violet-500" />
                 {"Asistente IA"}
               </Link>

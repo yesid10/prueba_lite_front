@@ -16,6 +16,7 @@ import { useMemo, useState, useEffect } from "react";
 import { FormRow } from "../molecules/FormRow";
 import { useCompanies } from "@/zustand/companies";
 import { useProducts } from "@/zustand/products";
+import axios from "axios";
 
 const schema = z.object({
   code: z.string().min(2, "Código requerido"),
@@ -62,13 +63,10 @@ export function ProductForm() {
       
       try {
         // Usando exchangerate-api.com (gratuita y confiable)
-        const res = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
+        const urlRates = import.meta.env.VITE_RATES_URL || "https://api.exchangerate-api.com/v4/latest/USD";
+        const response = await axios.get(urlRates);
         
-        if (!res.ok) {
-          throw new Error(`Error HTTP: ${res.status}`);
-        }
-        
-        const data = await res.json();
+        const data = response.data;
         
         // Validar estructura de respuesta
         if (!data.rates || typeof data.rates !== 'object') {

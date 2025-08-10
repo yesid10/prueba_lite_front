@@ -67,27 +67,3 @@ export const deleteProduct = async (code: string): Promise<void> => {
     }
 };
 
-// Obtener productos por compañía
-export const getProductsByCompany = async (companyNit: string): Promise<Product[]> => {
-    try {
-        const response = await api.get(`/products/company/${companyNit}`);
-        return response.data;
-    } catch (error: any) {
-        console.error(`Error al obtener productos de la empresa ${companyNit}:`, error.message);
-        throw error;
-    }
-};
-
-// Actualizar precios de un producto
-export const updateProductPrices = async (
-    code: string, 
-    prices: Pick<Product, 'price_cop' | 'price_usd' | 'price_eur'>
-): Promise<Product> => {
-    try {
-        const response = await api.patch(`/products/${code}/prices`, prices);
-        return response.data;
-    } catch (error: any) {
-        console.error(`Error al actualizar precios del producto ${code}:`, error.message);
-        throw error;
-    }
-};

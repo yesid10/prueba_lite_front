@@ -4,15 +4,20 @@ import { useMemo, useState, useEffect } from "react"
 import { type Product } from "@/services/products"
 import { useProducts } from "@/zustand/products"
 import { useCompanies } from "@/zustand/companies"
+import { userAuth } from "@/zustand/authUser"
 import { Pencil, Trash2 } from "lucide-react"
 
 export function ProductsTable() {
   const { products, loading: isLoading, error, fetchProducts } = useProducts()
   const { companies } = useCompanies()
+  const { user } = userAuth()
   const [query, setQuery] = useState("")
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [editCode, setEditCode] = useState<string | null>(null)
   const [editValues, setEditValues] = useState<Partial<Product>>({})
+  
+  // Verificar si el usuario es admin
+  const isAdmin = user?.role === 'admin'
 
   useEffect(() => {
     fetchProducts()
@@ -98,13 +103,13 @@ export function ProductsTable() {
                 <th className="p-2">Precio USD</th>
                 <th className="p-2">Precio EUR</th>
                 <th className="p-2">Empresa</th>
-                <th className="p-2">Acciones</th>
+                {isAdmin && <th className="p-2">Acciones</th>}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td className="p-3 text-muted-foreground" colSpan={7}>
+                  <td className="p-3 text-muted-foreground" colSpan={isAdmin ? 8 : 7}>
                     Sin productos registrados.
                   </td>
                 </tr>
@@ -161,43 +166,45 @@ export function ProductsTable() {
                       ) : product.price_eur.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}
                     </td>
                     <td className="p-2">{companiesByNit[product.company_nit] || product.company_nit}</td>
-                    <td className="p-2">
-                      {editCode === product.code ? (
-                        <>
-                          <button
-                            className="mr-2 px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
-                            onClick={saveEdit}
-                            disabled={actionLoading === product.code}
-                          >
-                            {actionLoading === product.code ? '...' : 'Guardar'}
-                          </button>
-                          <button
-                            className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
-                            onClick={cancelEdit}
-                            disabled={actionLoading === product.code}
-                          >
-                            Cancelar
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="mr-2 px-2 py-1 text-xs cursor-pointer"
-                            onClick={() => startEdit(product)}
-                            disabled={actionLoading === product.code}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            className="px-2 py-1 text-xs cursor-pointer"
-                            onClick={() => handleDelete(product.code)}
-                            disabled={actionLoading === product.code}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </button>
-                        </>
-                      )}
-                    </td>
+                    {isAdmin && (
+                      <td className="p-2">
+                        {editCode === product.code ? (
+                          <>
+                            <button
+                              className="mr-2 px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600"
+                              onClick={saveEdit}
+                              disabled={actionLoading === product.code}
+                            >
+                              {actionLoading === product.code ? '...' : 'Guardar'}
+                            </button>
+                            <button
+                              className="px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+                              onClick={cancelEdit}
+                              disabled={actionLoading === product.code}
+                            >
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              className="mr-2 px-2 py-1 text-xs cursor-pointer"
+                              onClick={() => startEdit(product)}
+                              disabled={actionLoading === product.code}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              className="px-2 py-1 text-xs cursor-pointer"
+                              onClick={() => handleDelete(product.code)}
+                              disabled={actionLoading === product.code}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

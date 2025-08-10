@@ -94,12 +94,4 @@ export const useCompanies = create<CompaniesState>((set) => ({
             });
         }
     },
-
-    // setSelectedCompany: (company) => {
-    //     set({ selectedCompany: company });
-    // },
-
-    // clearError: () => {
-    //     set({ error: null });
-    // }
 }));
