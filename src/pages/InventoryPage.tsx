@@ -1,5 +1,5 @@
 import { InventoryPanel } from "@/components/organisms/InventoryPanel";
-import PageContainer from "@/components/PageContainer";
+import PageContainer from "@/components/organisms/PageContainer";
 import { Boxes } from "lucide-react";
 
 const InventoryPage = () => {

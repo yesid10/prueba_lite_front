@@ -10,8 +10,8 @@ const Layout = () => {
 
   const handleLogout = async () => {
     try {
-      
-      navigate("/login")
+      localStorage.removeItem("token")
+      navigate("/")
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
     }

@@ -142,44 +142,20 @@ export function InventoryPanel() {
         }
       );
 
-      if (response.status >= 200 && response.status < 300) {
+      if (
+        response.status >= 200 &&
+        response.status < 300 &&
+        (response.data.id || response.data.success || response.data.data)
+      ) {
         setEmailStatus("success");
-        console.log("Email enviado exitosamente:", response.data);
+        console.log("✅ Email enviado exitosamente:", response.data);
       } else {
         setEmailStatus("error");
-        console.error("Error en respuesta:", response.status, response.data);
+        console.error("❌ Respuesta inesperada:", response.data);
       }
     } catch (error) {
       setEmailStatus("error");
-
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          console.error(
-            "Error de respuesta:",
-            error.response.status,
-            error.response.data
-          );
-
-          // Mensaje específico para error de dominio
-          if (
-            error.response.status === 403 &&
-            error.response.data?.error?.includes("domain is not verified")
-          ) {
-            console.error(
-              "❌ El dominio del remitente no está verificado en Resend"
-            );
-            console.log(
-              '💡 Usa "onboarding@resend.dev" para pruebas o verifica tu dominio en https://resend.com/domains'
-            );
-          }
-        } else if (error.request) {
-          console.error("Error de red:", error.request);
-        } else {
-          console.error("Error de configuración:", error.message);
-        }
-      } else {
-        console.error("Error desconocido:", error);
-      }
+      console.error("❌ Error enviando email:", error);
     }
 
     setTimeout(() => setEmailStatus(null), 3000);

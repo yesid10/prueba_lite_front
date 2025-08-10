@@ -1,4 +1,4 @@
-import PageContainer from "@/components/PageContainer"
+import PageContainer from "@/components/organisms/PageContainer"
 import CompaniesTable from "@/components/organisms/CompaniesTable"
 import CompanyForm from "@/components/organisms/CompanyForm"
 import { userAuth } from "@/zustand/authUser"

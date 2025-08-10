@@ -1,5 +1,5 @@
 import { AIAssistant } from "@/components/organisms/AIAssistant";
-import PageContainer from "@/components/PageContainer";
+import PageContainer from "@/components/organisms/PageContainer";
 import { Bot } from "lucide-react";
 
 const AIAssistantPage = () => {

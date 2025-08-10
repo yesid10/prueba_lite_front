@@ -1,6 +1,6 @@
 import { ProductForm } from "@/components/organisms/ProductForm";
 import { ProductsTable } from "@/components/organisms/ProductTable";
-import PageContainer from "@/components/PageContainer";
+import PageContainer from "@/components/organisms/PageContainer";
 import { userAuth } from "@/zustand/authUser";
 import { Package } from "lucide-react";
 
