@@ -1,5 +1,4 @@
-import { Resend } from 'resend';
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -10,22 +9,27 @@ interface EmailRequest {
   html: string;
   attachments?: {
     filename: string;
-    content: string; // base64
+    content: string;
     type: string;
     disposition?: string;
   }[];
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Solo permitir método POST
+module.exports = async (req: any, res: any) => {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
   try {
+    if (!process.env.RESEND_API_KEY) {
+      console.error('❌ RESEND_API_KEY no configurada');
+      return res.status(500).json({ 
+        error: 'RESEND_API_KEY not configured' 
+      });
+    }
+
     const { from, to, subject, html, attachments }: EmailRequest = req.body;
 
-    // Validación básica
     if (!from || !to || !subject || !html) {
       return res.status(400).json({ 
         error: 'Missing required fields: from, to, subject, html' 
@@ -39,17 +43,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       html,
     };
 
-    // Procesar attachments si existen
     if (attachments && attachments.length > 0) {
-      emailData.attachments = attachments.map(att => ({
+      emailData.attachments = attachments.map((att: any) => ({
         filename: att.filename,
         content: Buffer.from(att.content, 'base64'),
         content_type: att.type,
       }));
     }
 
+    console.log('📧 Enviando email...');
     const data = await resend.emails.send(emailData);
-
+    
+    console.log('✅ Email enviado:', data);
     res.status(200).json({ 
       success: true, 
       data,
@@ -57,18 +62,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
   } catch (error) {
-    console.error('Error sending email:', error);
-    
-    if (error instanceof Error) {
-      res.status(500).json({ 
-        error: error.message,
-        success: false 
-      });
-    } else {
-      res.status(500).json({ 
-        error: 'Unknown error occurred',
-        success: false 
-      });
-    }
+    console.error('❌ Error enviando email:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ 
+      error: errorMessage,
+      success: false 
+    });
   }
-}
+};
